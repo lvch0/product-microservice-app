@@ -1,32 +1,40 @@
 package com.lvch0.productservice;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.reactive.function.client.WebClient;
 
+import reactor.core.publisher.Mono;
 @RestController
 public class ProductController {
 
     List<ProductInfo> productList = new ArrayList<ProductInfo>();
 
-    @Autowired
-    private RestTemplate restTemplate;
+    public WebClient webClient = WebClient.create();
 
     @GetMapping("/product/details/{productid}")
-    public Product getProductDetails(@PathVariable Long productid) {
+    public Mono<Product> getProductDetails(@PathVariable Long productid) {
+        System.out.println("1");
         // !Get Name and Desc from product-service
-        ProductInfo productInfo = getProductInfo(productid);
+        Mono<ProductInfo> productInfo = Mono.just(getProductInfo(productid));
         // !Get Price from pricing-service
-        Price price = restTemplate.getForObject("http://localhost:8080/price/" + productid, Price.class);
+        Mono<Price> price = webClient.get().uri("http://localhost:8080/price/{productid}", productid).retrieve()
+                .bodyToMono(Price.class);
         // !Get stock Avail from inventory-service
-        Inventory inventory = restTemplate.getForObject("http://localhost:8003/inventory/" + productid,
-                Inventory.class);
+        Mono<Inventory> inventory = webClient.get().uri("http://localhost:8003/inventory/{productid}", productid)
+                .retrieve()
+                .bodyToMono(Inventory.class);
 
-        return new Product(productInfo.getProductId(), productInfo.getProductName(), productInfo.getProductDesc(),
-                price.getDiscountedPrice(),
-                inventory.getInStock());
+        System.out.print("2");
+
+        return Mono.zip(productInfo, price, inventory)
+                .map(tuple -> new Product(tuple.getT1().getProductId(), tuple.getT1().getProductName(),
+                        tuple.getT1().getProductDesc(), tuple.getT2().getDiscountedPrice(),
+                        tuple.getT3().getInStock()));
     }
 
     private ProductInfo getProductInfo(Long productid) {

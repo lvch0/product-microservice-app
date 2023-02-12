@@ -2,26 +2,24 @@ package com.lvch0.pricingservice;
 
 import java.util.*;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.RestTemplate;
+
+import reactor.core.publisher.Mono;
 
 @RestController
 public class PriceController {
 
-    @Autowired
-    private RestTemplate restTemplate;
-
     List<Price> priceList = new ArrayList<Price>();
 
     @GetMapping("/price/{productid}")
-    public Price getPriceDetails(@PathVariable Long productid) {
-        Price price = getPriceInfo(productid);
-        // !Get Exchange value
-        Integer exgVal = restTemplate.getForObject("http://localhost:8004/currexg/from/USD/to/YEN", ExgVal.class)
-                .getExgVal();
-        return new Price(price.getPriceId(), price.getProductId(), price.getOriginalPrice(),
-                Math.multiplyExact(exgVal, price.getDiscountedPrice()));
+    public Mono<Price> getPriceDetails(@PathVariable Long productid) {
+        Mono<Price> price = Mono.just(getPriceInfo(productid));
+        try {
+            Thread.sleep(10000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        return price;
     }
 
     private Price getPriceInfo(Long productid) {
