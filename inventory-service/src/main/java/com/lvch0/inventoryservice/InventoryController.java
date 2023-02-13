@@ -9,6 +9,10 @@ import reactor.core.publisher.Mono;
 @RestController
 public class InventoryController {
 
+    public InventoryController() {
+        populateInventoryList();
+    }
+
     List<Inventory> inventoryList = new ArrayList<Inventory>();
 
     @GetMapping("/inventory/{productid}")
@@ -19,7 +23,6 @@ public class InventoryController {
     }
 
     private Inventory getInventoryInfo(Long productid) {
-        populateInventoryList();
         for (Inventory i : inventoryList) {
             if (productid.equals(i.getProductId())) {
                 return i;
