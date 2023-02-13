@@ -9,21 +9,18 @@ import reactor.core.publisher.Mono;
 @RestController
 public class PriceController {
 
+    public PriceController() {
+        populatePriceList();
+    }
+
     List<Price> priceList = new ArrayList<Price>();
 
     @GetMapping("/price/{productid}")
     public Mono<Price> getPriceDetails(@PathVariable Long productid) {
-        Mono<Price> price = Mono.just(getPriceInfo(productid));
-        try {
-            Thread.sleep(10000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        return price;
+        return Mono.just(getPriceInfo(productid));
     }
 
     private Price getPriceInfo(Long productid) {
-        populatePriceList();
         for (Price p : priceList) {
             if (productid.equals(p.getProductId())) {
                 return p;

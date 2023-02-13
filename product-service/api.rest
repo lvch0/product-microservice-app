@@ -1,1 +1,4 @@
 GET http://localhost:8001/product/details/103
+
+###
+GET http://localhost:8001/product/list
