@@ -4,7 +4,6 @@ import java.util.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.RestTemplate;
 
 @RestController
 public class ProductController {
@@ -12,17 +11,19 @@ public class ProductController {
     List<ProductInfo> productList = new ArrayList<ProductInfo>();
 
     @Autowired
-    private RestTemplate restTemplate;
+    private PriceClient priceClient;
+
+    @Autowired
+    private InventoryClient inventoryClient;
 
     @GetMapping("/product/details/{productid}")
     public Product getProductDetails(@PathVariable Long productid) {
         // !Get Name and Desc from product-service
         ProductInfo productInfo = getProductInfo(productid);
         // !Get Price from pricing-service
-        Price price = restTemplate.getForObject("http://localhost:8080/price/" + productid, Price.class);
+        Price price = priceClient.getPriceDetails(productid);
         // !Get stock Avail from inventory-service
-        Inventory inventory = restTemplate.getForObject("http://localhost:8003/inventory/" + productid,
-                Inventory.class);
+        Inventory inventory = inventoryClient.getInventoryDetails(productid);
 
         return new Product(productInfo.getProductId(), productInfo.getProductName(), productInfo.getProductDesc(),
                 price.getDiscountedPrice(),
