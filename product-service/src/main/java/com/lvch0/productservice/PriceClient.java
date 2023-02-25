@@ -3,7 +3,7 @@ package com.lvch0.productservice;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.*;
 
-@FeignClient(value = "price-client", url = "http://localhost:8080/")
+@FeignClient(name = "pricing-service")
 public interface PriceClient {
 
     @GetMapping("/price/{productid}")
